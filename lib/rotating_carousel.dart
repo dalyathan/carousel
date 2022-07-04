@@ -8,16 +8,12 @@ import 'panel_container.dart';
 class RotatingCarousel extends StatefulWidget {
   final double width;
   final double height;
-  final double panelWidth;
   final int amount;
-  final double overlappingFactor;
   const RotatingCarousel(
       {Key? key,
       required this.amount,
       required this.width,
-      required this.height,
-      required this.panelWidth,
-      required this.overlappingFactor})
+      required this.height})
       : super(key: key);
 
   @override
@@ -27,23 +23,26 @@ class RotatingCarousel extends StatefulWidget {
 class _RotatingCarouselState extends State<RotatingCarousel>
     with SingleTickerProviderStateMixin {
   List<Panel> panels = [];
+  late double panelMaxWidth;
+  final double minFactor = 0.5;
   late final List<double> initOffsets;
   final Offset padding = const Offset(10, 100);
-  final double overlapRatio = 0.2;
+  final double overlapRatio = 0.15;
   late List<double> currentOffsets;
   late List<double> initialResizeFactors;
   late List<double> currentResizeFactors;
   bool animateChange = false;
+  final double rate = 1.1;
   late AnimationController _animationController;
   late int middleIndex;
   bool isRight = true;
   @override
   void initState() {
     middleIndex = ((widget.amount) / 2).ceil() - 1;
+    panelMaxWidth = getMaxWidth();
     initResizeDimensions();
     currentResizeFactors = initialResizeFactors;
     initOffsets = initializeOffset(initialResizeFactors);
-    // var colors = [Colors.red, Colors.green, Colors.blue, Colors.yellow];
     for (int index = 0; index < widget.amount; index++) {
       panels.add(Panel(
         index: index,
@@ -54,12 +53,11 @@ class _RotatingCarouselState extends State<RotatingCarousel>
     _animationController = AnimationController(
         vsync: this, duration: const Duration(milliseconds: 350));
     currentOffsets = initOffsets;
-    _animationController.addListener(() => animateRight());
+    _animationController.addListener(() => animate());
     super.initState();
   }
 
   initResizeDimensions() {
-    var minFactor = calculateMinFactor();
     if (widget.amount == 1) {
       initialResizeFactors = [1];
     } else if (widget.amount == 2) {
@@ -77,48 +75,83 @@ class _RotatingCarouselState extends State<RotatingCarousel>
     }
   }
 
-  double calculateMinFactor() {
+  // double calculateMinFactor() {
+  //   if (widget.amount % 2 == 0) {
+  //     return ((((widget.width / panelMaxWidth) - 1) /
+  //             ((((widget.amount - 2) / 2) * (1 - overlapRatio)))) -
+  //         1);
+  //   }
+  //   return ((((widget.width / panelMaxWidth) - 1) /
+  //           ((1 - overlapRatio) * ((widget.amount + 2) / 2))) +
+  //       (4 / (widget.amount + 2)) -
+  //       1);
+  // }
+
+  double getMaxWidth() {
     if (widget.amount % 2 == 0) {
-      return ((((widget.width / widget.panelWidth) - 1) /
-              ((((widget.amount - 2) / 2) * (1 - overlapRatio)))) -
-          1);
+      return widget.width /
+          (((1 - overlapRatio) *
+                  (((minFactor + 1) * ((widget.amount - 1) / 4)) - 1)) +
+              1);
     }
-    return ((((widget.width / widget.panelWidth) - 1) /
-            ((1 - overlapRatio) * ((widget.amount + 2) / 2))) +
-        (4 / (widget.amount + 2)) -
-        1);
+    // return (widget.width) /
+    //     ((2 *
+    //             (1 - overlapRatio) *
+    //             minFactor *
+    //             ((math.pow(rate, (widget.amount - 1) / 2) - 1) / (rate - 1))) +
+    //         1);
+    return widget.width /
+        (((1 - overlapRatio) *
+                (((minFactor + 1) * ((widget.amount + 2) / 2)) - 2)) +
+            1);
   }
 
   List<double> initializeOffset(List<double> resizeFactors) {
-    // double overlapRatio = calculateOverlapRatio(resizeFactors);
     List<double> offsets = List<double>.filled(widget.amount, 0);
+    offsets[0] = 0;
     for (var amountIndex = 1; amountIndex < widget.amount; amountIndex++) {
-      offsets[amountIndex] =
-          (resizeFactors[amountIndex - 1] * widget.panelWidth) *
-                  (1 - overlapRatio) +
-              offsets[amountIndex - 1];
+      if (amountIndex <= middleIndex) {
+        offsets[amountIndex] = offsets[amountIndex - 1] +
+            (resizeFactors[amountIndex - 1] *
+                panelMaxWidth *
+                (1 - overlapRatio));
+      } else {
+        offsets[amountIndex] = offsets[amountIndex - 1] +
+            (resizeFactors[amountIndex - 1] * panelMaxWidth) -
+            ((resizeFactors[amountIndex] * panelMaxWidth) * overlapRatio);
+      }
     }
+    // offsets[middleIndex] = (widget.width - panelMaxWidth) * 0.5;
+    // for (var before = middleIndex - 1; before >= 0; before--) {
+    //   offsets[before] = offsets[before + 1] -
+    //       (resizeFactors[before] * panelMaxWidth * (1 - overlapRatio));
+    // }
+    // for (var after = middleIndex + 1; after < widget.amount; after++) {
+    //   offsets[after] = offsets[after - 1] +
+    //       resizeFactors[after - 1] * panelMaxWidth -
+    //       resizeFactors[after] * panelMaxWidth * overlapRatio;
+    // }
     return offsets;
   }
 
-  double calculateOverlapRatio(double minFactor) {
-    if (widget.amount % 2 == 0) {
-      return 1 -
-          (((widget.width / widget.panelWidth) - 1) /
-              ((minFactor + 1) * ((widget.amount - 1) / 4) - 1));
-    }
-    return 1 -
-        (((widget.width / widget.panelWidth) - 1) /
-            (((widget.amount + 1) / 2) * (minFactor + 1) - 2));
-  }
+  // double calculateOverlapRatio(double minFactor) {
+  //   if (widget.amount % 2 == 0) {
+  //     return 1 -
+  //         (((widget.width / panelMaxWidth) - 1) /
+  //             ((minFactor + 1) * ((widget.amount - 1) / 4) - 1));
+  //   }
+  //   return 1 -
+  //       (((widget.width / panelMaxWidth) - 1) /
+  //           (((widget.amount + 1) / 2) * (minFactor + 1) - 2));
+  // }
 
   @override
   Widget build(BuildContext context) {
-    assert(widget.panelWidth * widget.amount > widget.width);
+    assert(panelMaxWidth * widget.amount > widget.width);
     List<PanelContainer> constrainedWidgets = [];
     for (var panelIndex = 0; panelIndex < widget.amount; panelIndex++) {
       constrainedWidgets.add(PanelContainer(
-        maxWidth: widget.panelWidth,
+        maxWidth: panelMaxWidth,
         maxHeight: widget.height,
         panel: panels[panelIndex],
         leftOffset: currentOffsets[panelIndex],
@@ -133,8 +166,7 @@ class _RotatingCarouselState extends State<RotatingCarousel>
         });
         await _animationController.forward();
       },
-      child: Padding(
-        padding: EdgeInsets.only(left: padding.dx, top: padding.dy),
+      child: Center(
         child: Container(
           width: widget.width,
           height: widget.height,
@@ -142,7 +174,6 @@ class _RotatingCarouselState extends State<RotatingCarousel>
           child: Align(
             alignment: Alignment.centerLeft,
             child: MyExample(
-              padding,
               children: rearrange(constrainedWidgets),
             ),
           ),
@@ -151,7 +182,7 @@ class _RotatingCarouselState extends State<RotatingCarousel>
     );
   }
 
-  animateRight() {
+  animate() {
     var percent = _animationController.value;
     var newOffsets = [];
     var newFactors = [];

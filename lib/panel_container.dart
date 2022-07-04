@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:math' as math;
 
 import 'panel.dart';
 
@@ -26,11 +27,13 @@ class PanelContainer extends StatelessWidget {
       child: Container(
         width: maxWidth,
         height: maxHeight,
-        decoration: BoxDecoration(border: Border.all(color: Colors.white)),
+        // decoration:
+        //     BoxDecoration(border: Border.all(color: Colors.teal, width: 2)),
         child: Align(
-          alignment: rightSide ? Alignment.center : Alignment.centerLeft,
+          alignment: Alignment
+              .centerLeft, // rightSide ? Alignment.centerRight : Alignment.centerLeft,
           child: FittedBox(
-            fit: BoxFit.fitWidth,
+            fit: BoxFit.cover,
             child: SizedBox(
               width: maxWidth * ratio,
               height: maxHeight * ratio,
