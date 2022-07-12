@@ -16,10 +16,35 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: const SafeArea(
+      home: SafeArea(
         child: Scaffold(
           body: RotatingCarousel(
-            amount: 8,
+            panels: [
+              Image.asset(
+                "assets/images/person.jpeg",
+                fit: BoxFit.fill,
+              ),
+              Image.asset(
+                "assets/images/she.jpeg",
+                fit: BoxFit.fill,
+              ),
+              Image.asset(
+                "assets/images/person.jpeg",
+                fit: BoxFit.fill,
+              ),
+              // Image.asset(
+              //   "assets/images/she.jpeg",
+              //   fit: BoxFit.fill,
+              // ),
+              // Image.asset(
+              //   "assets/images/person.jpeg",
+              //   fit: BoxFit.fill,
+              // ),
+              // Image.asset(
+              //   "assets/images/she.jpeg",
+              //   fit: BoxFit.fill,
+              // )
+            ],
             height: 150,
             width: 300,
           ),

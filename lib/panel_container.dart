@@ -6,7 +6,7 @@ import 'panel.dart';
 class PanelContainer extends StatelessWidget {
   final double maxWidth;
   final double maxHeight;
-  final Panel panel;
+  final Widget panel;
   final double leftOffset;
   final double ratio;
   final bool rightSide;
@@ -32,13 +32,10 @@ class PanelContainer extends StatelessWidget {
         child: Align(
           alignment: Alignment
               .center, // rightSide ? Alignment.centerRight : Alignment.centerLeft,
-          child: FittedBox(
-            fit: BoxFit.cover,
-            child: SizedBox(
-              width: maxWidth * ratio,
-              height: maxHeight * ratio,
-              child: panel,
-            ),
+          child: SizedBox(
+            width: maxWidth * ratio,
+            height: maxHeight * ratio,
+            child: panel,
           ),
         ),
       ),
