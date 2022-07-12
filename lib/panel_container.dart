@@ -25,13 +25,13 @@ class PanelContainer extends StatelessWidget {
     return Padding(
       padding: EdgeInsets.only(left: leftOffset),
       child: Container(
-        width: maxWidth,
+        width: maxWidth * ratio,
         height: maxHeight,
         // decoration:
-        //     BoxDecoration(border: Border.all(color: Colors.teal, width: 2)),
+        //     BoxDecoration(border: Border.all(color: Colors.red, width: 1)),
         child: Align(
           alignment: Alignment
-              .centerLeft, // rightSide ? Alignment.centerRight : Alignment.centerLeft,
+              .center, // rightSide ? Alignment.centerRight : Alignment.centerLeft,
           child: FittedBox(
             fit: BoxFit.cover,
             child: SizedBox(

@@ -19,9 +19,9 @@ class MyApp extends StatelessWidget {
       home: const SafeArea(
         child: Scaffold(
           body: RotatingCarousel(
-            amount: 20,
+            amount: 8,
             height: 150,
-            width: 200,
+            width: 300,
           ),
         ),
       ),

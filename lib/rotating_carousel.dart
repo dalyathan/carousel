@@ -24,7 +24,7 @@ class _RotatingCarouselState extends State<RotatingCarousel>
     with SingleTickerProviderStateMixin {
   List<Panel> panels = [];
   late double panelMaxWidth;
-  final double minFactor = 0.5;
+  final double minFactor = 0.8;
   late final List<double> initOffsets;
   final Offset padding = const Offset(10, 100);
   final double overlapRatio = 0.15;
@@ -38,6 +38,7 @@ class _RotatingCarouselState extends State<RotatingCarousel>
   bool isRight = true;
   @override
   void initState() {
+    super.initState();
     middleIndex = ((widget.amount) / 2).ceil() - 1;
     panelMaxWidth = getMaxWidth();
     initResizeDimensions();
@@ -54,7 +55,21 @@ class _RotatingCarouselState extends State<RotatingCarousel>
         vsync: this, duration: const Duration(milliseconds: 350));
     currentOffsets = initOffsets;
     _animationController.addListener(() => animate());
-    super.initState();
+  }
+
+  @override
+  reassemble() {
+    super.reassemble();
+    middleIndex = ((widget.amount) / 2).ceil() - 1;
+    panelMaxWidth = getMaxWidth();
+    initResizeDimensions();
+    currentResizeFactors = initialResizeFactors;
+    initOffsets = initializeOffset(initialResizeFactors);
+    _animationController = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 350));
+    currentOffsets = initOffsets;
+    _animationController.addListener(() => animate());
+    setState(() {});
   }
 
   initResizeDimensions() {
@@ -64,6 +79,7 @@ class _RotatingCarouselState extends State<RotatingCarousel>
       initialResizeFactors = [minFactor, 1];
     } else {
       var gap = (1 - minFactor) / (middleIndex);
+      assert(gap < minFactor, "Increase your min Factor");
       List<double> resizers = List<double>.filled(widget.amount, 1);
       for (var index = middleIndex - 1; index >= 0; index--) {
         resizers[index] = resizers[index + 1] - gap;
@@ -91,19 +107,14 @@ class _RotatingCarouselState extends State<RotatingCarousel>
     if (widget.amount % 2 == 0) {
       return widget.width /
           (((1 - overlapRatio) *
-                  (((minFactor + 1) * ((widget.amount - 1) / 4)) - 1)) +
+                  (((minFactor + 1) * ((widget.amount) / 2)) - 1)) +
               1);
     }
-    // return (widget.width) /
-    //     ((2 *
-    //             (1 - overlapRatio) *
-    //             minFactor *
-    //             ((math.pow(rate, (widget.amount - 1) / 2) - 1) / (rate - 1))) +
-    //         1);
     return widget.width /
         (((1 - overlapRatio) *
                 (((minFactor + 1) * ((widget.amount + 2) / 2)) - 2)) +
             1);
+    // return widget.width / ((1 - overlapRatio) * (widget.amount - 1) + 1);
   }
 
   List<double> initializeOffset(List<double> resizeFactors) {
@@ -147,7 +158,8 @@ class _RotatingCarouselState extends State<RotatingCarousel>
 
   @override
   Widget build(BuildContext context) {
-    assert(panelMaxWidth * widget.amount > widget.width);
+    assert(panelMaxWidth * widget.amount > widget.width,
+        "Please give a higher maximum width for the widget");
     List<PanelContainer> constrainedWidgets = [];
     for (var panelIndex = 0; panelIndex < widget.amount; panelIndex++) {
       constrainedWidgets.add(PanelContainer(
